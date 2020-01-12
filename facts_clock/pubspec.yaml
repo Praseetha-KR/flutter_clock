@@ -69,6 +69,10 @@ flutter:
         - asset: third_party/Rajdhani/Rajdhani-SemiBold.ttf
         #   style: bold
           weight: 600
+
+    - family: Fjalla One
+      fonts:
+        - asset: third_party/Fjalla_One/FjallaOne-Regular.ttf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
