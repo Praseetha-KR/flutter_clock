@@ -13,6 +13,8 @@ import 'package:auto_size_text/auto_size_text.dart';
 
 enum _Element {
   background,
+  bg1,
+  bg2,
   text,
   textAccent,
   accent,
@@ -20,16 +22,20 @@ enum _Element {
 
 final _lightTheme = {
   _Element.background: Color(0xFFF4F8FB),
-  _Element.text: Colors.black,
-  _Element.textAccent: Colors.black54,
-  _Element.accent: Colors.deepPurple,
+  _Element.bg1: Color(0xFFb8c9c9),
+  _Element.bg2: Color(0xFF7ac9da),
+  _Element.text: Color(0xFF2e353d),
+  _Element.textAccent: Color(0xFF6f7070),
+  _Element.accent: Color(0xFFef823e),
 };
 
 final _darkTheme = {
   _Element.background: Color(0xFF13192D),
-  _Element.text: Colors.white,
-  _Element.textAccent: Colors.white70,
-  _Element.accent: Colors.deepPurple,
+  _Element.bg1: Color(0xFF373c3d),
+  _Element.bg2: Color(0xFF1d1e1e),
+  _Element.text: Color(0xFF7ac9da),
+  _Element.textAccent: Color(0xFFb8c9c9),
+  _Element.accent: Color(0xFFef823e),
 };
 
 var factsData = {};
@@ -54,9 +60,12 @@ class FactsClock extends StatefulWidget {
   _FactsClockState createState() => _FactsClockState();
 }
 
-class _FactsClockState extends State<FactsClock> {
+class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateMixin {
   DateTime _dateTime = DateTime.now();
   Timer _timer;
+
+  Animation<double> animation;
+  AnimationController controller;
 
   @override
   void initState() {
@@ -71,6 +80,26 @@ class _FactsClockState extends State<FactsClock> {
 
     _updateTime();
     _updateModel();
+
+    controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this
+    );
+
+    animation = Tween(begin: 0.8, end: 0.4)
+      .chain(CurveTween(curve: Curves.bounceInOut))
+      .animate(controller);
+
+    animation.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        controller.reverse();
+      } else if (status == AnimationStatus.dismissed) {
+        controller.forward();
+      }
+      setState(() {});
+    });
+
+    controller.forward();
   }
 
   @override
@@ -87,6 +116,7 @@ class _FactsClockState extends State<FactsClock> {
     _timer?.cancel();
     widget.model.removeListener(_updateModel);
     widget.model.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -134,27 +164,23 @@ class _FactsClockState extends State<FactsClock> {
         fact = "Good Night!";
     }
     if (factsData[factKey]!= null && factsData[factKey].length > 0){
-        fact = "💡 " + factsData[factKey][0];
+        fact = factsData[factKey][0];
     }
 
-    final fontSize = MediaQuery.of(context).size.width / 20.5;
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final offset = -fontSize / 7;
-    final defaultStyle = TextStyle(
-      color: colors[_Element.text],
-      fontFamily: 'Roboto',
-      fontSize: fontSize,
-    );
-
-    final timeStyle = TextStyle(
-      color: colors[_Element.text],
-      fontFamily: 'Fjalla One',
-      // fontWeight: FontWeight.w600,
-    );
 
     return Container(
-      color: colors[_Element.background],
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          stops: [0.1, 0.9],
+          colors: [
+            colors[_Element.bg1],
+            colors[_Element.bg2]
+          ],
+        ),
+      ),
       width: MediaQuery.of(context).size.width,
       child: Column(
         children: [
@@ -169,125 +195,146 @@ class _FactsClockState extends State<FactsClock> {
               ),
             ),
           ),
+          Spacer(flex: 12),
           Flexible(
             flex: 64,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(32.0, 20.0, 32.0, 0.0),
-              child: Container(
-                child: Container(
-                  child: Center(
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Expanded( // Constrains AutoSizeText to the width of the Row
-                          child: AutoSizeText.rich(
-                            TextSpan(
-                              text: hour,
-                              style: TextStyle(fontSize: 190),
-                            ),
-                            minFontSize: 0,
-                            textAlign: TextAlign.end,
-                            stepGranularity: 0.1,
-                            style: timeStyle,
+            child: Container(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Expanded(
+                    child: Container(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: AutoSizeText.rich(
+                                TextSpan(
+                                  text: hour,
+                                ),
+                                minFontSize: 50,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Fjalla One',
+                                  fontSize: 500,
+                                  color: colors[_Element.text],
+                                ),
+                              )
+                            )
                           )
-                        ),
-                        Padding(
+                        ]
+                      )
+                    )
+                  ),
+                  Column(
+                    children: [
+                      Spacer(flex: 4),
+                      Flexible(
+                        flex: 11,
+                        child:Padding(
                           padding: EdgeInsets.only(
-                            left: screenWidth * 0.004,
-                            right: screenWidth * 0.004
+                            left: screenWidth * 0.006,
+                            right: screenWidth * 0.006
                           ),
-                          child: AutoSizeText.rich(
-                            TextSpan(
-                              text: ':',
-                              style: TextStyle(fontSize: 165, color: colors[_Element.accent]),
-                            ),
-                            minFontSize: 0,
-                            stepGranularity: 0.1,
-                            style: timeStyle,
-                          ),
-                        ),
-                        Expanded( // Constrains AutoSizeText to the width of the Row
-                          child: AutoSizeText.rich(
-                            TextSpan(
-                              text: minute,
-                              style: TextStyle(
-                                fontSize: 190,
-                                // shadows: [
-                                //   Shadow(
-                                //     blurRadius: 10.0,
-                                //     color: Colors.blue,
-                                //     offset: Offset(5.0, 5.0),
-                                //   ),
-                                //   Shadow(
-                                //     color: Colors.green,
-                                //     blurRadius: 10.0,
-                                //     offset: Offset(-10.0, 5.0),
-                                //   ),
-                                // ],
-                              ),
-                            ),
-                            minFontSize: 0,
-                            stepGranularity: 0.1,
-                            style: timeStyle,
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: FadeTransition(
+                                    opacity: animation,
+                                    child: AutoSizeText.rich(
+                                      TextSpan(
+                                        text: ':',
+                                      ),
+                                      minFontSize: 50,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontFamily: 'Fjalla One',
+                                        fontSize: 500,
+                                        height: 0.9,
+                                        color: colors[_Element.accent],
+                                      ),
+                                    )
+                                  )
+                                )
+                              )
+                            ]
                           )
                         ),
-                      ],
-                    ),
-                  )
-                )
-              )
-            ),
-          ),
-          // Flexible(
-          //   flex: 10,
-          //   child: AutoSizeText.rich(
-          //     TextSpan(
-          //       text: 'Did you know?',
-          //       style: TextStyle(
-          //         // fontFamily: 'Open Sans',
-          //         fontSize: 15,
-          //         color: colors[_Element.accent],
-          //       ),
-          //     ),
-          //     minFontSize: 0,
-          //     textAlign: TextAlign.center,
-          //     stepGranularity: 0.1,
-          //   ),
-          // ),
-          Flexible(
-            flex: 25,
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                screenWidth * 0.08,
-                screenHeight * 0.04,
-                screenWidth * 0.08,
-                screenHeight * 0.08
+                      ),
+                      Spacer(flex: 4),
+                    ]
+                  ),
+                  Expanded(
+                    child: Container(
+                      // color: Colors.orange,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: AutoSizeText.rich(
+                                TextSpan(
+                                  text: minute,
+                                ),
+                                minFontSize: 50,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Fjalla One',
+                                  fontSize: 500,
+                                  color: colors[_Element.text],
+                                ),
+                              )
+                            )
+                          )
+                        ]
+                      )
+                    )
+                  ),
+                ],
               ),
-              child: Container(
+            )
+          ),
+          Flexible(
+            flex: 18,
+            child: Container(
+              // color: Colors.teal,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: screenWidth * 0.10,
+                  right: screenWidth * 0.10
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     Expanded(
-                      child: AutoSizeText.rich(
-                        TextSpan(
-                          text: fact,
-                          style: TextStyle(
-                            fontFamily: 'Open Sans',
-                            fontSize: 180,
-                            color: colors[_Element.textAccent],
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: AutoSizeText.rich(
+                          TextSpan(
+                            text: fact,
+                            style: TextStyle(
+                              fontFamily: 'Open Sans',
+                              fontSize: 200,
+                              color: colors[_Element.textAccent],
+                            ),
                           ),
+                          minFontSize: 0,
+                          textAlign: TextAlign.center,
+                          stepGranularity: 0.1,
                         ),
-                        minFontSize: 0,
-                        textAlign: TextAlign.center,
-                        stepGranularity: 0.1,
-                      ),
+                      )
                     )
-                  ],
-                )
-              ),
-            )
+                  ]
+                ),
+              )
+            ),
           ),
+          Spacer(flex: 12)
         ]
       ),
     );
