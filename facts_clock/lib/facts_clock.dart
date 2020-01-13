@@ -139,7 +139,7 @@ class _FactsClockState extends State<FactsClock>
   }
 
   IconData _getWeatherIcon(condition) {
-    final _conditionIconMap = {
+    final conditionIconMap = {
       'cloudy': WeatherIcons.cloudy,
       'foggy': WeatherIcons.fog,
       'rainy': WeatherIcons.rain,
@@ -148,7 +148,7 @@ class _FactsClockState extends State<FactsClock>
       'thunderstorm': WeatherIcons.thunderstorm,
       'windy': WeatherIcons.windy,
     };
-    return _conditionIconMap[condition];
+    return conditionIconMap[condition];
   }
 
   String _getFactForNow(date, hour, minute) {
@@ -199,7 +199,7 @@ class _FactsClockState extends State<FactsClock>
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
-        Spacer(flex: 3),
+        Spacer(flex: 4),
         Flexible(
             flex: 29,
             child: Container(
@@ -283,7 +283,7 @@ class _FactsClockState extends State<FactsClock>
                 ],
               ),
             )),
-        Spacer(flex: 78),
+        Spacer(flex: 77),
       ],
     );
 
@@ -425,7 +425,7 @@ class _FactsClockState extends State<FactsClock>
               ),
             ),
           ),
-          Spacer(flex: 3),
+          Spacer(flex: 6),
           Flexible(
             flex: 6,
             child: Container(
@@ -433,16 +433,16 @@ class _FactsClockState extends State<FactsClock>
             ),
           ),
           Spacer(flex: 2),
-          Flexible(flex: 64, child: timeComponent),
+          Flexible(flex: 65, child: timeComponent),
           Flexible(
-            flex: 16,
+            flex: 13,
             child: Container(
               child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.10),
                   child: factComponent),
             ),
           ),
-          Spacer(flex: 10),
+          Spacer(flex: 12),
         ],
       ),
     );
