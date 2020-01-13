@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import "dart:math";
 
 import 'package:flutter_clock_helper/model.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -25,7 +26,7 @@ final _lightTheme = {
   _Element.bg1: Color(0xFFb8c9c9),
   _Element.bg2: Color(0xFF7ac9da),
   _Element.text: Color(0xFF2e353d),
-  _Element.textAccent: Color(0xFF6f7070),
+  _Element.textAccent: Color(0xFF636a72),
   _Element.accent: Color(0xFFef823e),
 };
 
@@ -74,8 +75,6 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
 
     loadFactsData().then((data) {
         factsData = data;
-        print("data: ");
-        print(data);
     }, onError: (e){ print(e); });
 
     _updateTime();
@@ -122,15 +121,12 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
 
   void _updateModel() {
     setState(() {
-      // Cause the clock to rebuild when the model changes.
     });
   }
 
   void _updateTime() {
     setState(() {
       _dateTime = DateTime.now();
-      // Update once per second, but make sure to do it at the beginning of each
-      // new second, so that the clock is accurate.
       _timer = Timer(
         Duration(seconds: 1) - Duration(milliseconds: _dateTime.millisecond),
         _updateTime,
@@ -143,15 +139,17 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
     final colors = Theme.of(context).brightness == Brightness.light
           ? _lightTheme
           : _darkTheme;
-    // final colors = Theme.of(context).brightness == Brightness.light
-    //       ? _darkTheme
-    //       : _lightTheme;
+
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Get time
     final hour = DateFormat(
       widget.model.is24HourFormat ? 'HH' : 'hh'
     ).format(_dateTime);
     final minute = DateFormat('mm').format(_dateTime);
     final second = DateFormat('ss').format(_dateTime);
 
+    // Get a random fact
     final factKey = hour + minute;
     var fact = "";
     if (_dateTime.hour < 12) {
@@ -163,11 +161,12 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
     } else  {
         fact = "Good Night!";
     }
-    if (factsData[factKey]!= null && factsData[factKey].length > 0){
-        fact = factsData[factKey][0];
-    }
 
-    final screenWidth = MediaQuery.of(context).size.width;
+    final numFacts = factsData[factKey];
+    if (numFacts!= null && numFacts.length > 0){
+        final _random = new Random();
+        fact = numFacts[_random.nextInt(numFacts.length)];
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -221,12 +220,12 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
                                   fontSize: 500,
                                   color: colors[_Element.text],
                                 ),
-                              )
-                            )
-                          )
-                        ]
-                      )
-                    )
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   Column(
                     children: [
@@ -287,16 +286,16 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
                                   fontSize: 500,
                                   color: colors[_Element.text],
                                 ),
-                              )
-                            )
-                          )
-                        ]
-                      )
-                    )
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
-            )
+            ),
           ),
           Flexible(
             flex: 18,
@@ -327,15 +326,15 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
                           textAlign: TextAlign.center,
                           stepGranularity: 0.1,
                         ),
-                      )
-                    )
-                  ]
+                      ),
+                    ),
+                  ],
                 ),
-              )
+              ),
             ),
           ),
-          Spacer(flex: 12)
-        ]
+          Spacer(flex: 12),
+        ],
       ),
     );
   }
