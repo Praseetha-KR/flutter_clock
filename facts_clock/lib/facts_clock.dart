@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import "dart:math";
 
 import 'package:flutter_clock_helper/model.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -152,7 +151,7 @@ class _FactsClockState extends State<FactsClock>
     return _conditionIconMap[condition];
   }
 
-  String _getFactForNow(hour, minute) {
+  String _getFactForNow(date, hour, minute) {
     final key = hour + minute;
     var fact = '';
 
@@ -171,8 +170,9 @@ class _FactsClockState extends State<FactsClock>
 
     final numFacts = _factsData[key];
     if (numFacts != null && numFacts.length > 0) {
-      final _random = new Random();
-      fact = numFacts[_random.nextInt(numFacts.length)];
+      // Rotate index
+      final nextIdx = date % numFacts.length;
+      fact = numFacts[nextIdx];
     }
     return fact;
   }
@@ -193,26 +193,98 @@ class _FactsClockState extends State<FactsClock>
     final day = DateFormat('EEE, d MMM').format(_dateTime);
 
     // Get a random fact for current time
-    final fact = _getFactForNow(hour, minute);
+    final fact = _getFactForNow(_dateTime.day, hour, minute);
 
-    final weatherComponent = DefaultTextStyle(
-      style: TextStyle(color: colors[_Element.textLight]),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(day),
-          Text(' '),
-          BoxedIcon(
-            _getWeatherIcon(_condition),
-            size: 10,
-            color: colors[_Element.accent],
-          ),
-          Text(' '),
-          // Text(_condition),
-          Text(_temperature),
-          // Text(_temperatureRange),
-        ],
-      ),
+    final weatherComponent = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: <Widget>[
+        Spacer(flex: 3),
+        Flexible(
+            flex: 29,
+            child: Container(
+              // color: Colors.amber,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Flexible(
+                    flex: 14,
+                    child: Container(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: AutoSizeText.rich(
+                                TextSpan(
+                                  text: day,
+                                ),
+                                minFontSize: 1,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Open Sans',
+                                  fontSize: 200,
+                                  color: colors[_Element.textLight],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    flex: 5,
+                    child: Container(
+                        child: Column(children: [
+                      Expanded(
+                          child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4.0),
+                        child: Align(
+                            alignment: Alignment.center,
+                            child:
+                                LayoutBuilder(builder: (context, constraint) {
+                              return new BoxedIcon(
+                                _getWeatherIcon(_condition),
+                                size: constraint.biggest.height / 1.7,
+                                color: colors[_Element.accent],
+                              );
+                            })),
+                      ))
+                    ])),
+                  ),
+                  Flexible(
+                    flex: 9,
+                    child: Container(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: AutoSizeText.rich(
+                                TextSpan(
+                                  text: _temperature,
+                                ),
+                                minFontSize: 1,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Open Sans',
+                                  fontSize: 200,
+                                  color: colors[_Element.textLight],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )),
+        Spacer(flex: 78),
+      ],
     );
 
     final timeComponent = Container(
@@ -250,8 +322,8 @@ class _FactsClockState extends State<FactsClock>
             Flexible(
               flex: 11,
               child: Padding(
-                  padding: EdgeInsets.only(
-                      left: screenWidth * 0.006, right: screenWidth * 0.006),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: screenWidth * 0.006),
                   child: Column(children: [
                     Expanded(
                         child: Align(
@@ -277,7 +349,6 @@ class _FactsClockState extends State<FactsClock>
           ]),
           Expanded(
             child: Container(
-              // color: Colors.orange,
               child: Column(
                 children: [
                   Expanded(
@@ -354,24 +425,11 @@ class _FactsClockState extends State<FactsClock>
               ),
             ),
           ),
-          Spacer(flex: 2),
+          Spacer(flex: 3),
           Flexible(
-            flex: 10,
+            flex: 6,
             child: Container(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(
-                        right: screenWidth / 30, left: screenWidth / 30),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: weatherComponent,
-                    ),
-                  ),
-                ],
-              ),
+              child: weatherComponent,
             ),
           ),
           Spacer(flex: 2),
@@ -380,12 +438,11 @@ class _FactsClockState extends State<FactsClock>
             flex: 16,
             child: Container(
               child: Padding(
-                  padding: EdgeInsets.only(
-                      left: screenWidth * 0.10, right: screenWidth * 0.10),
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.10),
                   child: factComponent),
             ),
           ),
-          Spacer(flex: 12),
+          Spacer(flex: 10),
         ],
       ),
     );
