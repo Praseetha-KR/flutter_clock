@@ -8,11 +8,8 @@ import 'package:flutter/material.dart';
 import 'facts_clock.dart';
 
 void main() {
-    if (!kIsWeb && Platform.isMacOS) {
-        // TODO(gspencergoog): Update this when TargetPlatform includes macOS.
-        // https://github.com/flutter/flutter/issues/31366
-        // See https://github.com/flutter/flutter/wiki/Desktop-shells#target-platform-override.
-        debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
-    }
-    runApp(ClockCustomizer((ClockModel model) => FactsClock(model)));
+  if (!kIsWeb && Platform.isMacOS) {
+    debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
+  }
+  runApp(ClockCustomizer((ClockModel model) => FactsClock(model)));
 }

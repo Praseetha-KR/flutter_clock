@@ -46,11 +46,10 @@ Future<String> _loadFactsDataAsset() async {
 }
 
 Future loadFactsData() async {
-    String jsonString = await _loadFactsDataAsset();
-    Map<String, dynamic> jsonResponse = jsonDecode(jsonString);
-    return jsonResponse;
+  String jsonString = await _loadFactsDataAsset();
+  Map<String, dynamic> jsonResponse = jsonDecode(jsonString);
+  return jsonResponse;
 }
-
 
 class FactsClock extends StatefulWidget {
   const FactsClock(this.model);
@@ -61,7 +60,8 @@ class FactsClock extends StatefulWidget {
   _FactsClockState createState() => _FactsClockState();
 }
 
-class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateMixin {
+class _FactsClockState extends State<FactsClock>
+    with SingleTickerProviderStateMixin {
   DateTime _dateTime = DateTime.now();
   Timer _timer;
 
@@ -74,20 +74,20 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
     widget.model.addListener(_updateModel);
 
     loadFactsData().then((data) {
-        factsData = data;
-    }, onError: (e){ print(e); });
+      factsData = data;
+    }, onError: (e) {
+      print(e);
+    });
 
     _updateTime();
     _updateModel();
 
     controller = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this
-    );
+        duration: const Duration(milliseconds: 500), vsync: this);
 
     animation = Tween(begin: 0.8, end: 0.4)
-      .chain(CurveTween(curve: Curves.bounceInOut))
-      .animate(controller);
+        .chain(CurveTween(curve: Curves.bounceInOut))
+        .animate(controller);
 
     animation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
@@ -120,8 +120,7 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
   }
 
   void _updateModel() {
-    setState(() {
-    });
+    setState(() {});
   }
 
   void _updateTime() {
@@ -137,15 +136,14 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).brightness == Brightness.light
-          ? _lightTheme
-          : _darkTheme;
+        ? _lightTheme
+        : _darkTheme;
 
     final screenWidth = MediaQuery.of(context).size.width;
 
     // Get time
-    final hour = DateFormat(
-      widget.model.is24HourFormat ? 'HH' : 'hh'
-    ).format(_dateTime);
+    final hour =
+        DateFormat(widget.model.is24HourFormat ? 'HH' : 'hh').format(_dateTime);
     final minute = DateFormat('mm').format(_dateTime);
     final second = DateFormat('ss').format(_dateTime);
 
@@ -153,19 +151,19 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
     final factKey = hour + minute;
     var fact = "";
     if (_dateTime.hour < 12) {
-        fact = "Good Morning!";
+      fact = "Good Morning!";
     } else if (_dateTime.hour < 15) {
-        fact = "Good Afternoon!";
+      fact = "Good Afternoon!";
     } else if (_dateTime.hour < 20) {
-        fact = "Good Evening!";
-    } else  {
-        fact = "Good Night!";
+      fact = "Good Evening!";
+    } else {
+      fact = "Good Night!";
     }
 
     final numFacts = factsData[factKey];
-    if (numFacts!= null && numFacts.length > 0){
-        final _random = new Random();
-        fact = numFacts[_random.nextInt(numFacts.length)];
+    if (numFacts != null && numFacts.length > 0) {
+      final _random = new Random();
+      fact = numFacts[_random.nextInt(numFacts.length)];
     }
 
     return Container(
@@ -174,10 +172,7 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           stops: [0.1, 0.9],
-          colors: [
-            colors[_Element.bg1],
-            colors[_Element.bg2]
-          ],
+          colors: [colors[_Element.bg1], colors[_Element.bg2]],
         ),
       ),
       width: MediaQuery.of(context).size.width,
@@ -188,7 +183,8 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
             child: Container(
               alignment: Alignment.centerLeft,
               child: Container(
-                width: MediaQuery.of(context).size.width / 60 * int.parse(second),
+                width:
+                    MediaQuery.of(context).size.width / 60 * int.parse(second),
                 height: 10.0,
                 color: colors[_Element.accent],
               ),
@@ -227,46 +223,37 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
                       ),
                     ),
                   ),
-                  Column(
-                    children: [
-                      Spacer(flex: 4),
-                      Flexible(
-                        flex: 11,
-                        child:Padding(
+                  Column(children: [
+                    Spacer(flex: 4),
+                    Flexible(
+                      flex: 11,
+                      child: Padding(
                           padding: EdgeInsets.only(
-                            left: screenWidth * 0.006,
-                            right: screenWidth * 0.006
-                          ),
-                          child: Column(
-                            children: [
-                              Expanded(
+                              left: screenWidth * 0.006,
+                              right: screenWidth * 0.006),
+                          child: Column(children: [
+                            Expanded(
                                 child: Align(
-                                  alignment: Alignment.center,
-                                  child: FadeTransition(
-                                    opacity: animation,
-                                    child: AutoSizeText.rich(
-                                      TextSpan(
-                                        text: ':',
-                                      ),
-                                      minFontSize: 50,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontFamily: 'Fjalla One',
-                                        fontSize: 500,
-                                        height: 0.9,
-                                        color: colors[_Element.accent],
-                                      ),
-                                    )
-                                  )
-                                )
-                              )
-                            ]
-                          )
-                        ),
-                      ),
-                      Spacer(flex: 4),
-                    ]
-                  ),
+                                    alignment: Alignment.center,
+                                    child: FadeTransition(
+                                        opacity: animation,
+                                        child: AutoSizeText.rich(
+                                          TextSpan(
+                                            text: ':',
+                                          ),
+                                          minFontSize: 50,
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontFamily: 'Fjalla One',
+                                            fontSize: 500,
+                                            height: 0.9,
+                                            color: colors[_Element.accent],
+                                          ),
+                                        ))))
+                          ])),
+                    ),
+                    Spacer(flex: 4),
+                  ]),
                   Expanded(
                     child: Container(
                       // color: Colors.orange,
@@ -303,9 +290,7 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
               // color: Colors.teal,
               child: Padding(
                 padding: EdgeInsets.only(
-                  left: screenWidth * 0.10,
-                  right: screenWidth * 0.10
-                ),
+                    left: screenWidth * 0.10, right: screenWidth * 0.10),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -339,4 +324,3 @@ class _FactsClockState extends State<FactsClock> with SingleTickerProviderStateM
     );
   }
 }
-
