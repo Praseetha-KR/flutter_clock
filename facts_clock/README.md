@@ -1,4 +1,4 @@
-<div style="text-align: center">
+<div align="center">
   <h1>Facts Clock</h1>
   <h5>Treat your brain with a cool number fact whenever you look at the time! 🤓🕗</h5>
 </div>
@@ -43,6 +43,9 @@
 <br><br>
 <hr>
 <br><br>
+<div align="center">
+<h3>Screenshots</h3>
+</div>
 <table>
   <tr>
     <td align="center">Light Theme</td>
