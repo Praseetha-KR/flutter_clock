@@ -2,7 +2,7 @@
   <h1>Facts Clock</h1>
   <h5>Treat your brain with a cool number fact whenever you look at the time! 🤓🕗</h5>
 </div>
-
+<br><br>
 <table>
   <tr>
     <th colspan="2">Clock Details</th>
@@ -17,7 +17,7 @@
   </tr>
   <tr>
     <td>UI</td>
-    <td><img src='facts_clock.gif' width='350'></td>
+    <td><img src="facts_clock.gif" width="350"></td>
   </tr>
   <tr>
     <td>Type</td>
@@ -42,25 +42,10 @@
 <table>
 <br><br>
 <hr>
-<br><br>
 <div align="center">
-<h3>Screenshots</h3>
+  <h3>Screenshots</h3>
+  <h5>Light Theme</h5>
+  <div><img src="facts_clock_light.png" width="70%" /></div>
+  <h5>Dark Theme</h5>
+  <div><img src="facts_clock_dark.png" width="70%" /></div>
 </div>
-<table>
-  <tr>
-    <td align="center">Light Theme</td>
-  </tr>
-  <tr>
-    <td align="center"><img src='facts_clock_light.png' /></td>
-  </tr>
-</table>
-<br>
-<table>
-  <tr>
-    <td align="center">Dark Theme</td>
-  </tr>
-  <tr>
-    <td align="center"><img src='facts_clock_dark.png' /></td>
-  </tr>
-</table>
-<br>
