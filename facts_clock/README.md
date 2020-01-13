@@ -33,7 +33,7 @@
   </tr>
   <tr>
     <td>Scaling ideas</td>
-    <td>The info shown now is based on the time-digits number. Instead it can be any tiny piece of info tailored for the user - news highlights or any <em>'did you know?'<em> random fact corresponding to the user's preferences.</td>
+    <td>The info shown now is based on the time-digits number. Instead it can be any tiny piece of info tailored for the user - news highlights or any <em>'did you know?'</em> random fact corresponding to the user's preferences.</td>
   </tr>
   <tr>
     <td>Author</td>
