@@ -11,6 +11,7 @@ dependencies:
   flutter_clock_helper:
     path: ../flutter_clock_helper
   auto_size_text: ^2.1.0
+  weather_icons: ^2.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,3 @@
-// Copyright 2019 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:async';
 import 'dart:convert';
 import "dart:math";
@@ -11,6 +7,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:weather_icons/weather_icons.dart';
 
 enum _Element {
   background,
@@ -19,6 +16,7 @@ enum _Element {
   text,
   textAccent,
   accent,
+  textLight,
 }
 
 final _lightTheme = {
@@ -27,6 +25,7 @@ final _lightTheme = {
   _Element.bg2: Color(0xFF7ac9da),
   _Element.text: Color(0xFF2e353d),
   _Element.textAccent: Color(0xFF636a72),
+  _Element.textLight: Color(0xFF85898f),
   _Element.accent: Color(0xFFef823e),
 };
 
@@ -36,19 +35,20 @@ final _darkTheme = {
   _Element.bg2: Color(0xFF1d1e1e),
   _Element.text: Color(0xFF7ac9da),
   _Element.textAccent: Color(0xFFb8c9c9),
+  _Element.textLight: Color(0xFF656c6c),
   _Element.accent: Color(0xFFef823e),
 };
 
-var factsData = {};
+var _factsData = {};
 
 Future<String> _loadFactsDataAsset() async {
   return await rootBundle.loadString('assets/data.json');
 }
 
 Future loadFactsData() async {
-  String jsonString = await _loadFactsDataAsset();
-  Map<String, dynamic> jsonResponse = jsonDecode(jsonString);
-  return jsonResponse;
+  String _jsonString = await _loadFactsDataAsset();
+  Map<String, dynamic> _jsonResponse = jsonDecode(_jsonString);
+  return _jsonResponse;
 }
 
 class FactsClock extends StatefulWidget {
@@ -65,16 +65,19 @@ class _FactsClockState extends State<FactsClock>
   DateTime _dateTime = DateTime.now();
   Timer _timer;
 
-  Animation<double> animation;
-  AnimationController controller;
+  var _temperature = '';
+  var _condition = '';
+
+  Animation<double> _animation;
+  AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
     widget.model.addListener(_updateModel);
 
-    loadFactsData().then((data) {
-      factsData = data;
+    loadFactsData().then((d) {
+      _factsData = d;
     }, onError: (e) {
       print(e);
     });
@@ -82,23 +85,23 @@ class _FactsClockState extends State<FactsClock>
     _updateTime();
     _updateModel();
 
-    controller = AnimationController(
+    _controller = AnimationController(
         duration: const Duration(milliseconds: 500), vsync: this);
 
-    animation = Tween(begin: 0.8, end: 0.4)
+    _animation = Tween(begin: 0.8, end: 0.4)
         .chain(CurveTween(curve: Curves.bounceInOut))
-        .animate(controller);
+        .animate(_controller);
 
-    animation.addStatusListener((status) {
+    _animation.addStatusListener((status) {
       if (status == AnimationStatus.completed) {
-        controller.reverse();
+        _controller.reverse();
       } else if (status == AnimationStatus.dismissed) {
-        controller.forward();
+        _controller.forward();
       }
       setState(() {});
     });
 
-    controller.forward();
+    _controller.forward();
   }
 
   @override
@@ -115,12 +118,15 @@ class _FactsClockState extends State<FactsClock>
     _timer?.cancel();
     widget.model.removeListener(_updateModel);
     widget.model.dispose();
-    controller.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   void _updateModel() {
-    setState(() {});
+    setState(() {
+      _temperature = widget.model.temperatureString;
+      _condition = widget.model.weatherString;
+    });
   }
 
   void _updateTime() {
@@ -131,6 +137,44 @@ class _FactsClockState extends State<FactsClock>
         _updateTime,
       );
     });
+  }
+
+  IconData _getWeatherIcon(condition) {
+    final _conditionIconMap = {
+      'cloudy': WeatherIcons.cloudy,
+      'foggy': WeatherIcons.fog,
+      'rainy': WeatherIcons.rain,
+      'snowy': WeatherIcons.snow,
+      'sunny': WeatherIcons.day_sunny,
+      'thunderstorm': WeatherIcons.thunderstorm,
+      'windy': WeatherIcons.windy,
+    };
+    return _conditionIconMap[condition];
+  }
+
+  String _getFactForNow(hour, minute) {
+    final key = hour + minute;
+    var fact = '';
+
+    // Set default if no fact defined for the key
+    if (_dateTime.hour < 10) {
+      fact = 'Good Morning!';
+    } else if (_dateTime.hour < 13) {
+      fact = 'Have a nice day!';
+    } else if (_dateTime.hour < 15) {
+      fact = 'Good Afternoon!';
+    } else if (_dateTime.hour < 20) {
+      fact = 'Good Evening!';
+    } else {
+      fact = 'Good Night!';
+    }
+
+    final numFacts = _factsData[key];
+    if (numFacts != null && numFacts.length > 0) {
+      final _random = new Random();
+      fact = numFacts[_random.nextInt(numFacts.length)];
+    }
+    return fact;
   }
 
   @override
@@ -146,25 +190,145 @@ class _FactsClockState extends State<FactsClock>
         DateFormat(widget.model.is24HourFormat ? 'HH' : 'hh').format(_dateTime);
     final minute = DateFormat('mm').format(_dateTime);
     final second = DateFormat('ss').format(_dateTime);
+    final day = DateFormat('EEE, d MMM').format(_dateTime);
 
-    // Get a random fact
-    final factKey = hour + minute;
-    var fact = "";
-    if (_dateTime.hour < 12) {
-      fact = "Good Morning!";
-    } else if (_dateTime.hour < 15) {
-      fact = "Good Afternoon!";
-    } else if (_dateTime.hour < 20) {
-      fact = "Good Evening!";
-    } else {
-      fact = "Good Night!";
-    }
+    // Get a random fact for current time
+    final fact = _getFactForNow(hour, minute);
 
-    final numFacts = factsData[factKey];
-    if (numFacts != null && numFacts.length > 0) {
-      final _random = new Random();
-      fact = numFacts[_random.nextInt(numFacts.length)];
-    }
+    final weatherComponent = DefaultTextStyle(
+      style: TextStyle(color: colors[_Element.textLight]),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(day),
+          Text(' '),
+          BoxedIcon(
+            _getWeatherIcon(_condition),
+            size: 10,
+            color: colors[_Element.accent],
+          ),
+          Text(' '),
+          // Text(_condition),
+          Text(_temperature),
+          // Text(_temperatureRange),
+        ],
+      ),
+    );
+
+    final timeComponent = Container(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Expanded(
+            child: Container(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: AutoSizeText.rich(
+                        TextSpan(
+                          text: hour,
+                        ),
+                        minFontSize: 50,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Fjalla One',
+                          fontSize: 500,
+                          color: colors[_Element.text],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Column(children: [
+            Spacer(flex: 4),
+            Flexible(
+              flex: 11,
+              child: Padding(
+                  padding: EdgeInsets.only(
+                      left: screenWidth * 0.006, right: screenWidth * 0.006),
+                  child: Column(children: [
+                    Expanded(
+                        child: Align(
+                            alignment: Alignment.center,
+                            child: FadeTransition(
+                                opacity: _animation,
+                                child: AutoSizeText.rich(
+                                  TextSpan(
+                                    text: ':',
+                                  ),
+                                  minFontSize: 50,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: 'Fjalla One',
+                                    fontSize: 500,
+                                    height: 0.9,
+                                    color: colors[_Element.accent],
+                                  ),
+                                ))))
+                  ])),
+            ),
+            Spacer(flex: 4),
+          ]),
+          Expanded(
+            child: Container(
+              // color: Colors.orange,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: AutoSizeText.rich(
+                        TextSpan(
+                          text: minute,
+                        ),
+                        minFontSize: 50,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Fjalla One',
+                          fontSize: 500,
+                          color: colors[_Element.text],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final factComponent = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Expanded(
+          child: Align(
+            alignment: Alignment.center,
+            child: AutoSizeText.rich(
+              TextSpan(
+                text: fact,
+                style: TextStyle(
+                  fontFamily: 'Open Sans',
+                  fontSize: 200,
+                  color: colors[_Element.textAccent],
+                ),
+              ),
+              minFontSize: 0,
+              textAlign: TextAlign.center,
+              stepGranularity: 0.1,
+            ),
+          ),
+        ),
+      ],
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -190,132 +354,35 @@ class _FactsClockState extends State<FactsClock>
               ),
             ),
           ),
-          Spacer(flex: 12),
+          Spacer(flex: 2),
           Flexible(
-            flex: 64,
+            flex: 10,
             child: Container(
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerRight,
-                              child: AutoSizeText.rich(
-                                TextSpan(
-                                  text: hour,
-                                ),
-                                minFontSize: 50,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: 'Fjalla One',
-                                  fontSize: 500,
-                                  color: colors[_Element.text],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Column(children: [
-                    Spacer(flex: 4),
-                    Flexible(
-                      flex: 11,
-                      child: Padding(
-                          padding: EdgeInsets.only(
-                              left: screenWidth * 0.006,
-                              right: screenWidth * 0.006),
-                          child: Column(children: [
-                            Expanded(
-                                child: Align(
-                                    alignment: Alignment.center,
-                                    child: FadeTransition(
-                                        opacity: animation,
-                                        child: AutoSizeText.rich(
-                                          TextSpan(
-                                            text: ':',
-                                          ),
-                                          minFontSize: 50,
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontFamily: 'Fjalla One',
-                                            fontSize: 500,
-                                            height: 0.9,
-                                            color: colors[_Element.accent],
-                                          ),
-                                        ))))
-                          ])),
-                    ),
-                    Spacer(flex: 4),
-                  ]),
-                  Expanded(
-                    child: Container(
-                      // color: Colors.orange,
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: AutoSizeText.rich(
-                                TextSpan(
-                                  text: minute,
-                                ),
-                                minFontSize: 50,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: 'Fjalla One',
-                                  fontSize: 500,
-                                  color: colors[_Element.text],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(
+                        right: screenWidth / 30, left: screenWidth / 30),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: weatherComponent,
                     ),
                   ),
                 ],
               ),
             ),
           ),
+          Spacer(flex: 2),
+          Flexible(flex: 64, child: timeComponent),
           Flexible(
-            flex: 18,
+            flex: 16,
             child: Container(
-              // color: Colors.teal,
               child: Padding(
-                padding: EdgeInsets.only(
-                    left: screenWidth * 0.10, right: screenWidth * 0.10),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: AutoSizeText.rich(
-                          TextSpan(
-                            text: fact,
-                            style: TextStyle(
-                              fontFamily: 'Open Sans',
-                              fontSize: 200,
-                              color: colors[_Element.textAccent],
-                            ),
-                          ),
-                          minFontSize: 0,
-                          textAlign: TextAlign.center,
-                          stepGranularity: 0.1,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                  padding: EdgeInsets.only(
+                      left: screenWidth * 0.10, right: screenWidth * 0.10),
+                  child: factComponent),
             ),
           ),
           Spacer(flex: 12),
